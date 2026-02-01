@@ -1,3 +1,3 @@
 mod linkedlist;
 
-pub use linkedlist::LinkedList;
+pub use linkedlist::insert_at_tail_works;

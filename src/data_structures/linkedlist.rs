@@ -1,4 +1,7 @@
-use std::{marker::PhantomData, ptr::NonNull};
+use std::{
+    fmt::{self, Display, Formatter},
+    ptr::NonNull,
+};
 
 pub struct Node<T> {
     pub val: T,
@@ -7,21 +10,19 @@ pub struct Node<T> {
 }
 
 impl<T> Node<T> {
-    fn new(t: T) -> Node<T> {
+    fn new(val: T) -> Node<T> {
         Node {
-            val: t,
-            prev: None,
+            val,
             next: None,
+            prev: None,
         }
     }
 }
 
-#[derive(Debug)]
 pub struct LinkedList<T> {
-    pub len: usize,
+    pub len: u32,
     pub head: Option<NonNull<Node<T>>>,
     pub tail: Option<NonNull<Node<T>>>,
-    marker: PhantomData<Box<Node<T>>>,
 }
 
 impl<T> Default for LinkedList<T> {
@@ -36,7 +37,6 @@ impl<T> LinkedList<T> {
             len: 0,
             head: None,
             tail: None,
-            marker: PhantomData,
         }
     }
 
@@ -67,29 +67,49 @@ impl<T> LinkedList<T> {
             None => self.head = node_ptr,
             Some(tail_ptr) => unsafe { (*tail_ptr.as_ptr()).next = node_ptr },
         }
-    }
 
-    pub fn delete_head(&mut self) {
-        if self.len == 0 {
-            return None;
-        }
-
-        self.head.map(|head_ptr| unsafe {
-            let old_head = Box::from_raw(head_ptr.as_ptr());
-        });
+        self.tail = node_ptr;
+        self.len += 1;
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::LinkedList;
-
-    #[test]
-    fn insert_at_head_works() {
-        let mut list = LinkedList::<i32>::new();
-        let second_val = 2;
-        list.insert_at_head(1);
-        list.insert_at_head(second_val);
-        println!("Linked List is {:?}", list);
+impl<T> Display for Node<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self.next {
+            Some(node) => write!(f, "{}, {}", self.val, unsafe { node.as_ref() }),
+            None => write!(f, "{}", self.val),
+        }
     }
+}
+
+impl<T> Display for LinkedList<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self.head {
+            Some(node) => write!(f, "{}", unsafe { node.as_ref() }),
+            None => Ok(()),
+        }
+    }
+}
+
+// #[cfg(test)]
+// mod tests {
+//     use super::LinkedList;
+
+//     #[test]
+
+// }
+
+pub fn insert_at_tail_works() {
+    let mut list = LinkedList::<i32>::new();
+    let second_val = 2;
+    list.insert_at_head(1);
+    list.insert_at_head(second_val);
+
+    dbg!(list);
 }
